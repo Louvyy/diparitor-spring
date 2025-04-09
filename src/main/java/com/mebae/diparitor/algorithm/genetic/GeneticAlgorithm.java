@@ -11,12 +11,13 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.mebae.diparitor.utils.RandomUtils.*;
-import static com.mebae.diparitor.utils.RandomUtils.getRandomNumber;
 
 public final class GeneticAlgorithm implements Algorithm {
   @Override
   public List<Map<Power, RegisteredPlayer>> computeBestTournament(TournamentSetup tournamentSetup) {
     var randomPairingGenotype = randomInstanceOf(tournamentSetup);
+    System.out.println(randomPairingGenotype);
+    System.out.println(FitnessEvaluator.evaluate(randomPairingGenotype, true));
     return List.of();
   }
 
@@ -24,9 +25,8 @@ public final class GeneticAlgorithm implements Algorithm {
   private static PairingGenotype randomInstanceOf(TournamentSetup tournamentSetup) {
     Objects.requireNonNull(tournamentSetup);
     var players = tournamentSetup.getPlayers();
-    var playerPerGameCount = tournamentSetup.getPlayerPerGameCount();
-    var gamePairingList = generateRandomizedGamePairingList(players, playerPerGameCount);
-    var powers = tournamentSetup.getPowers();
+    var powers = tournamentSetup.getPowers().stream().toList();
+    var gamePairingList = generateRandomizedGamePairingList(players, powers);
     var tournamentPairing = new PairingGenotype(gamePairingList, powers.size());
     while (!tournamentPairing.isViable()) {
       generateRandomParticipantSwap(tournamentPairing);
@@ -35,13 +35,14 @@ public final class GeneticAlgorithm implements Algorithm {
   }
 
   private static ArrayList<PairingChromosome> generateRandomizedGamePairingList(Set<RegisteredPlayer> players,
-                                                                        int playerPerGameCount) {
+                                                                                List<Power> powers) {
     Objects.requireNonNull(players);
     var participantList = generateRandomizedParticipantList(players);
-    return IntStream.range(0, participantList.size() / playerPerGameCount)
+    var geneCount = powers.size();
+    return IntStream.range(0, participantList.size() / geneCount)
       .mapToObj(i -> new PairingChromosome(i,
-                                           new ArrayList<>(participantList.subList(i * playerPerGameCount,
-                                                                                   (i + 1) * playerPerGameCount))))
+                                           new ArrayList<>(participantList.subList(i * geneCount, (i + 1) * geneCount)),
+                                           powers))
       .collect(Collectors.toCollection(ArrayList::new));
   }
 
@@ -58,9 +59,9 @@ public final class GeneticAlgorithm implements Algorithm {
     var genesCount = pairingGenotype.getGenesCount();
     var firstRandomGameIndex = getRandomNumber(chromosomes.size());
     var firstRandomPlayerIndex = getRandomNumber(genesCount);
-    var firstPlayer = chromosomes.get(firstRandomGameIndex).getGene(firstRandomPlayerIndex);
+    var firstPlayer = chromosomes.get(firstRandomGameIndex).getPlayer(firstRandomPlayerIndex);
     var firstRandomGameViableIndexList = pairingGenotype.getSwappableChromosomeIndexes(firstPlayer,
-                                                                                         firstRandomGameIndex);
+                                                                                       firstRandomGameIndex);
     var secondRandomGameIndex = -1;
     var secondRandomPlayerIndex = -1;
     RegisteredPlayer secondPlayer = null;
@@ -68,19 +69,20 @@ public final class GeneticAlgorithm implements Algorithm {
     while (!secondPlayerViable) {
       secondRandomGameIndex = pickRandom(firstRandomGameViableIndexList);
       secondRandomPlayerIndex = secondRandomGameIndex == firstRandomGameIndex
-        ? getRandomNumberExcept(genesCount, firstRandomPlayerIndex)
+        ? getRandomNumberExcept(genesCount,
+                                firstRandomPlayerIndex)
         : getRandomNumber(genesCount);
-      secondPlayer = chromosomes.get(secondRandomGameIndex).getGene(secondRandomPlayerIndex);
+      secondPlayer = chromosomes.get(secondRandomGameIndex).getPlayer(secondRandomPlayerIndex);
       var secondRandomGameViableIndexList = pairingGenotype.getSwappableChromosomeIndexes(secondPlayer,
-                                                                                            secondRandomGameIndex);
+                                                                                          secondRandomGameIndex);
       if (secondRandomGameViableIndexList.contains(firstRandomGameIndex)) {
         secondPlayerViable = true;
       }
     }
     var firstGamePairing = chromosomes.get(firstRandomGameIndex);
     var secondGamePairing = chromosomes.get(secondRandomGameIndex);
-    firstGamePairing.setGene(firstRandomPlayerIndex, secondPlayer);
-    secondGamePairing.setGene(secondRandomPlayerIndex, firstPlayer);
+    firstGamePairing.setPlayer(firstRandomPlayerIndex, secondPlayer);
+    secondGamePairing.setPlayer(secondRandomPlayerIndex, firstPlayer);
   }
 
   // TODO DEBUG A DEPLACER DANS TESTS
@@ -124,7 +126,7 @@ public final class GeneticAlgorithm implements Algorithm {
       if (durationInMilliseconds > longer) {
         longer = durationInMilliseconds;
       }
-      System.out.println("Durée : " + durationInMilliseconds + " ms (" + i + " / "+ iterations + ")");
+      System.out.println("Durée : " + durationInMilliseconds + " ms (" + i + " / " + iterations + ")");
     }
     var endSimulation = System.nanoTime();
     var simulationDurationInNanoseconds = endSimulation - startSimulation;
