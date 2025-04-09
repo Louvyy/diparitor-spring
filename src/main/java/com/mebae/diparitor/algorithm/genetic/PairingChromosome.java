@@ -40,6 +40,12 @@ final class PairingChromosome {
     return IntStream.range(0, players.size()).mapToObj(i -> Map.entry(players.get(i), powers.get(i))).toList();
   }
 
+  public Map<Power, RegisteredPlayer> getMappedGenes() {
+    return IntStream.range(0, players.size())
+      .boxed()
+      .collect(Collectors.toMap(powers::get, players::get));
+  }
+
   public List<Map.Entry<RegisteredPlayer, ArrayList<RegisteredPlayer>>> getOpponents() {
     return players.stream()
       .map(registeredPlayer -> Map.entry(registeredPlayer, getPlayerOpponents(registeredPlayer)))

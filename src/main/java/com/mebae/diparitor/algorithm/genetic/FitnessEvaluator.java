@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.mebae.diparitor.utils.DoubleUtils.computeAverage;
 import static com.mebae.diparitor.utils.DoubleUtils.computeVariance;
 
 final class FitnessEvaluator {
@@ -19,7 +18,7 @@ final class FitnessEvaluator {
     var powerDiversityScore = evaluatePowerDiversity(playerPowerList);
     var powerBalanceScore = evaluatePowerBalance(playerPowerList, hasDifficulty);
     var opponentDiversityScore = evaluateOpponentDiversity(genotype.computePlayerOpponentList());
-    return new FitnessScore(powerDiversityScore, powerBalanceScore, opponentDiversityScore);
+    return new FitnessScore(powerDiversityScore, opponentDiversityScore, powerBalanceScore);
   }
 
   private static long evaluatePowerDiversity(Map<RegisteredPlayer, List<Power>> playerPowerList) {
