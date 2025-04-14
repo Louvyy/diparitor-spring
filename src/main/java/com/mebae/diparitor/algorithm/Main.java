@@ -1,13 +1,13 @@
 package com.mebae.diparitor.algorithm;
 
 import com.mebae.diparitor.algorithm.genetic.GeneticAlgorithm;
-import com.mebae.diparitor.data.Power;
-import com.mebae.diparitor.data.RegisteredPlayer;
-import com.mebae.diparitor.data.TournamentSetup;
+import com.mebae.diparitor.model.Power;
+import com.mebae.diparitor.model.RegisteredPlayer;
+import com.mebae.diparitor.model.TournamentSetup;
 
 import java.util.Set;
 
-public class AlgorithmMain {
+public class Main {
   public static void main(String[] args) {
     // Arguments
     var players = Set.of(new RegisteredPlayer("Alice", 3),
@@ -31,9 +31,9 @@ public class AlgorithmMain {
                         new Power("Italy", 5.60),
                         new Power("Russia", 5.18),
                         new Power("Turkey", 4.56));
+    var hasPowerDifficulty = true;
     var algorithm = new GeneticAlgorithm();
-
-    var tournamentSetup = TournamentSetup.of(players, powers);
+    var tournamentSetup = TournamentSetup.of(players, powers, hasPowerDifficulty);
     var tournament = algorithm.computeBestTournament(tournamentSetup);
     System.out.println(tournament);
   }

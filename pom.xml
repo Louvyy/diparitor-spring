@@ -40,11 +40,6 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>io.jenetics</groupId>
-			<artifactId>jenetics</artifactId>
-			<version>8.1.0</version>
-		</dependency>
 	</dependencies>
 
 	<build>

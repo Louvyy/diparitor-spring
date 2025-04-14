@@ -12,6 +12,6 @@ public final class DoubleUtils {
     return values.stream()
       .mapToDouble(v -> Math.pow(v - mean, 2))
       .average()
-      .orElse(0.0); // pour être plus tolérant que `orElseThrow`
+      .orElseThrow();
   }
 }

@@ -1,4 +1,4 @@
-package com.mebae.diparitor.data;
+package com.mebae.diparitor.model;
 
 import java.util.Objects;
 /**
@@ -29,6 +29,6 @@ public record RegisteredPlayer(String name, int participationCount) {
    */
   @Override
   public String toString() {
-    return name + " (Games: " + participationCount + ")";
+    return name;
   }
 }

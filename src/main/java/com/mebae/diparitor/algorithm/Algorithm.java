@@ -1,12 +1,9 @@
 package com.mebae.diparitor.algorithm;
 
-import com.mebae.diparitor.data.Power;
-import com.mebae.diparitor.data.RegisteredPlayer;
-import com.mebae.diparitor.data.TournamentSetup;
+import com.mebae.diparitor.model.PairingResult;
+import com.mebae.diparitor.model.TournamentSetup;
 
-import java.util.List;
-import java.util.Map;
-
+@FunctionalInterface
 public interface Algorithm {
-  List<Map<Power, RegisteredPlayer>> computeBestTournament(TournamentSetup tournamentSetup);
+  PairingResult computeBestTournament(TournamentSetup tournamentSetup);
 }

@@ -1,6 +1,7 @@
-package com.mebae.diparitor.data;
+package com.mebae.diparitor.model;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a power in a Diplomacy game.
@@ -8,6 +9,9 @@ import java.util.Objects;
  */
 public final class Power {
   private final String name;
+  /**
+   * Represents the value of the difficulty coefficient if any, null otherwise
+   */
   private final Double difficulty;
 
   /**
@@ -49,10 +53,10 @@ public final class Power {
   /**
    * Returns the difficulty coefficient, if any.
    *
-   * @return the difficulty value, or {@code null} if not set
+   * @return the difficulty value, or {@code Optional.empty()} if not set
    */
-  public Double difficulty() {
-    return difficulty;
+  public Optional<Double> difficulty() {
+    return Optional.ofNullable(difficulty);
   }
 
   /**
