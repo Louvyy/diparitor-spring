@@ -5,14 +5,14 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
 public final class RandomUtils {
-  public static int getRandomNumber(int upperBound) {
+  public static int randomNumber(int upperBound) {
     if (upperBound < 1) {
       throw new IllegalArgumentException("Upper bound must be at least 0 to get a number");
     }
     return ThreadLocalRandom.current().nextInt(upperBound);
   }
 
-  public static int getRandomNumberExcept(int upperBound, int exception) {
+  public static int randomNumberExcept(int upperBound, int exception) {
     if (upperBound < 2) {
       throw new IllegalArgumentException("Upper bound must be at least 1 to get a number");
     }

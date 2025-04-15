@@ -29,7 +29,7 @@ final class GeneticTournament {
     this.hasPowerDifficulty = hasPowerDifficulty;
   }
 
-  public List<Integer> getSwappableChromosomeIndexes(RegisteredPlayer player, int actualIndex) {
+  public List<Integer> computeSwappableGameIndexes(RegisteredPlayer player, int actualIndex) {
     return gameList.stream()
       .filter(game -> game.getIndex() == actualIndex || !game.containsPlayer(player))
       .mapToInt(GeneticGame::getIndex)
@@ -43,12 +43,11 @@ final class GeneticTournament {
   }
 
   public void computeRandomViablePlayerSwap() {
-    var firstRandomGameIndex = getRandomNumber(gameCount);
-    var firstRandomPlayerIndex = getRandomNumber(powerCount);
+    var firstRandomGameIndex = randomNumber(gameCount);
+    var firstRandomPlayerIndex = randomNumber(powerCount);
     var firstPlayer = gameList.get(firstRandomGameIndex).getPlayer(firstRandomPlayerIndex);
-    var firstRandomGameViableIndexList = getSwappableChromosomeIndexes(firstPlayer, firstRandomGameIndex);
-    var secondRandomGameIndex = -1;
-    var secondRandomPlayerIndex = -1;
+    var firstRandomGameViableIndexList = computeSwappableGameIndexes(firstPlayer, firstRandomGameIndex);
+    int secondRandomGameIndex, secondRandomPlayerIndex;
     RegisteredPlayer secondPlayer;
     var secondPlayerViable = false;
 
@@ -57,11 +56,11 @@ final class GeneticTournament {
     do {
       secondRandomGameIndex = pickRandom(firstRandomGameViableIndexList);
       secondRandomPlayerIndex = secondRandomGameIndex == firstRandomGameIndex
-        ? getRandomNumberExcept(powerCount,
-                                firstRandomPlayerIndex)
-        : getRandomNumber(powerCount);
+        ? randomNumberExcept(powerCount,
+                             firstRandomPlayerIndex)
+        : randomNumber(powerCount);
       secondPlayer = gameList.get(secondRandomGameIndex).getPlayer(secondRandomPlayerIndex);
-      var secondRandomGameViableIndexList = getSwappableChromosomeIndexes(secondPlayer, secondRandomGameIndex); // O(n²)
+      var secondRandomGameViableIndexList = computeSwappableGameIndexes(secondPlayer, secondRandomGameIndex); // O(n²)
       if (secondRandomGameViableIndexList.contains(firstRandomGameIndex)) { // contains dans une list AAAAAA
         secondPlayerViable = true;
       }
@@ -79,13 +78,13 @@ final class GeneticTournament {
 
   public Map<RegisteredPlayer, List<Power>> computePlayerPowerList() {
     return gameList.stream()
-      .flatMap(chromosome -> chromosome.computePairings().stream())
+      .flatMap(game -> game.computePairings().stream())
       .collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
   }
 
   public Map<RegisteredPlayer, List<RegisteredPlayer>> computePlayerOpponentList() {
     return gameList.stream()
-      .flatMap(chromosome -> chromosome.computeOpponents().stream())
+      .flatMap(game -> game.computeOpponents().stream())
       .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (existing, replacement) -> {
         existing.addAll(replacement);
         return existing;
@@ -103,7 +102,7 @@ final class GeneticTournament {
   @Override
   public String toString() {
     var maxNameLength = gameList.stream()
-      .flatMap(chromosome -> IntStream.range(0, powerCount).mapToObj(i -> chromosome.getPlayer(i).toString()))
+      .flatMap(game -> IntStream.range(0, powerCount).mapToObj(i -> game.getPlayer(i).toString()))
       .mapToInt(String::length)
       .max()
       .orElse(10);
@@ -122,9 +121,9 @@ final class GeneticTournament {
 
     // Corps : chaque ligne représente une partie
     var body = IntStream.range(0, gameCount).mapToObj(gameIndex -> {
-      var chromosome = gameList.get(gameIndex);
+      var game = gameList.get(gameIndex);
       String playersLine = IntStream.range(0, powerCount)
-        .mapToObj(i -> String.format("%-" + cellWidth + "s", chromosome.getPlayer(i)))
+        .mapToObj(i -> String.format("%-" + cellWidth + "s", game.getPlayer(i)))
         .collect(Collectors.joining(" | "));
       return String.format("Game %-2d: %s", gameIndex, playersLine);
     }).collect(Collectors.joining("\n"));

@@ -13,11 +13,11 @@ final class FitnessScoreEvaluator {
   private FitnessScoreEvaluator() {
   }
 
-  public static FitnessScore evaluate(GeneticTournament genotype) {
-    var playerPowerList = genotype.computePlayerPowerList();
+  public static FitnessScore evaluate(GeneticTournament tournament) {
+    var playerPowerList = tournament.computePlayerPowerList();
     var powerDiversityScore = evaluatePowerDiversity(playerPowerList);
-    var powerBalanceScore = evaluatePowerBalance(playerPowerList, genotype.hasPowerDifficulty());
-    var opponentDiversityScore = evaluateOpponentDiversity(genotype.computePlayerOpponentList());
+    var powerBalanceScore = evaluatePowerBalance(playerPowerList, tournament.hasPowerDifficulty());
+    var opponentDiversityScore = evaluateOpponentDiversity(tournament.computePlayerOpponentList());
     return new FitnessScore(powerDiversityScore, opponentDiversityScore, powerBalanceScore);
   }
 
