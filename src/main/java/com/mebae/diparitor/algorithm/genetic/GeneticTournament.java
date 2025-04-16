@@ -7,6 +7,7 @@ import com.mebae.diparitor.model.RegisteredPlayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -29,12 +30,12 @@ final class GeneticTournament {
     this.hasPowerDifficulty = hasPowerDifficulty;
   }
 
-  public List<Integer> computeSwappableGameIndexes(RegisteredPlayer player, int actualIndex) {
+  public Set<Integer> computeSwappableGameIndexes(RegisteredPlayer player, int currentGameIndex) {
     return gameList.stream()
-      .filter(game -> game.getIndex() == actualIndex || !game.containsPlayer(player))
+      .filter(game -> game.getIndex() == currentGameIndex || !game.containsPlayer(player))
       .mapToInt(GeneticGame::getIndex)
       .boxed()
-      .toList();
+      .collect(Collectors.toSet());
   }
 
   public GeneticTournament mutableCopyOf() {
@@ -43,33 +44,30 @@ final class GeneticTournament {
   }
 
   public void computeRandomViablePlayerSwap() {
-    var firstRandomGameIndex = randomNumber(gameCount);
-    var firstRandomPlayerIndex = randomNumber(powerCount);
-    var firstPlayer = gameList.get(firstRandomGameIndex).getPlayer(firstRandomPlayerIndex);
-    var firstRandomGameViableIndexList = computeSwappableGameIndexes(firstPlayer, firstRandomGameIndex);
-    int secondRandomGameIndex, secondRandomPlayerIndex;
+    var firstGameIndex = randomNumber(gameCount);
+    var firstPlayerIndex = randomNumber(powerCount);
+    var firstGame = gameList.get(firstGameIndex);
+    var firstPlayer = firstGame.getPlayer(firstPlayerIndex);
+    var firstSwappableGameIndexSet = computeSwappableGameIndexes(firstPlayer, firstGameIndex);
+    int secondGameIndex, secondPlayerIndex;
     RegisteredPlayer secondPlayer;
-    var secondPlayerViable = false;
+    GeneticGame secondGame;
 
-    // TODO précalculer les listes (rien n'est mutable dans la boucle)
-    // Map<Integer, List> map.get(secondRandomGameIndex)
-    do {
-      secondRandomGameIndex = pickRandom(firstRandomGameViableIndexList);
-      secondRandomPlayerIndex = secondRandomGameIndex == firstRandomGameIndex
-        ? randomNumberExcept(powerCount,
-                             firstRandomPlayerIndex)
+    while (true) {
+      secondGameIndex = pickRandom(firstSwappableGameIndexSet);
+      secondPlayerIndex = secondGameIndex == firstGameIndex
+        ? randomNumberExcept(powerCount, firstPlayerIndex)
         : randomNumber(powerCount);
-      secondPlayer = gameList.get(secondRandomGameIndex).getPlayer(secondRandomPlayerIndex);
-      var secondRandomGameViableIndexList = computeSwappableGameIndexes(secondPlayer, secondRandomGameIndex); // O(n²)
-      if (secondRandomGameViableIndexList.contains(firstRandomGameIndex)) { // contains dans une list AAAAAA
-        secondPlayerViable = true;
+      secondGame = gameList.get(secondGameIndex);
+      secondPlayer = secondGame.getPlayer(secondPlayerIndex);
+      var secondSwappableGameIndexSet = computeSwappableGameIndexes(secondPlayer, secondGameIndex);
+      if (secondSwappableGameIndexSet.contains(firstGameIndex)) {
+        break;
       }
-    } while (!secondPlayerViable);
+    }
 
-    var firstGamePairing = gameList.get(firstRandomGameIndex);
-    var secondGamePairing = gameList.get(secondRandomGameIndex);
-    firstGamePairing.setPlayer(firstRandomPlayerIndex, secondPlayer);
-    secondGamePairing.setPlayer(secondRandomPlayerIndex, firstPlayer);
+    firstGame.setPlayer(firstPlayerIndex, secondPlayer);
+    secondGame.setPlayer(secondPlayerIndex, firstPlayer);
   }
 
   public boolean isViable() {
@@ -101,33 +99,42 @@ final class GeneticTournament {
 
   @Override
   public String toString() {
-    var maxNameLength = gameList.stream()
-      .flatMap(game -> IntStream.range(0, powerCount).mapToObj(i -> game.getPlayer(i).toString()))
-      .mapToInt(String::length)
-      .max()
-      .orElse(10);
+    var gameLabelPrefix = "Game ";
+    var gameLabelSuffix = " : ";
+    var gameLabelLength = gameLabelPrefix.length() + gameLabelSuffix.length();
+    var maxGameIndexLength = String.valueOf(gameCount).length();
+    var maxGameLength = gameLabelLength + maxGameIndexLength;
+    var maxNameLength = gameList.stream().mapToInt(GeneticGame::getPlayersMaxNameLength).max().orElseThrow();
+    var powerLabel = "Power ";
+    var maxPowerLength = powerLabel.length() + String.valueOf(powerCount).length();
+    var cellWidth = Math.max(maxNameLength, maxPowerLength);
+    var sb = new StringBuilder();
 
-    var cellWidth = Math.max(maxNameLength, 7); // au moins assez large pour les noms des puissances
+    sb.append(" ".repeat(maxGameLength));
+    sb.append(IntStream.range(0, powerCount)
+                .mapToObj(i -> String.format("%-" + cellWidth + "s", powerLabel + i))
+                .collect(Collectors.joining(" | ")));
+    sb.append("\n");
 
-    // Ligne d'en-tête des puissances (Power 0, Power 1, etc.)
-    var header = " ".repeat("Game XX: ".length()) + IntStream.range(0, powerCount)
-      .mapToObj(i -> String.format("%-" + cellWidth + "s", "Power " + i))
-      .collect(Collectors.joining(" | "));
+    sb.append(" ".repeat(maxGameLength));
+    sb.append(IntStream.range(0, powerCount).mapToObj(i -> "-".repeat(cellWidth)).collect(Collectors.joining("-+-")));
+    sb.append("\n");
 
-    // Ligne de séparation
-    var separator = " ".repeat("Game XX: ".length()) + IntStream.range(0, powerCount)
-      .mapToObj(i -> "-".repeat(cellWidth))
-      .collect(Collectors.joining("-+-"));
-
-    // Corps : chaque ligne représente une partie
-    var body = IntStream.range(0, gameCount).mapToObj(gameIndex -> {
+    for (int gameIndex = 0; gameIndex < gameCount; gameIndex++) {
       var game = gameList.get(gameIndex);
-      String playersLine = IntStream.range(0, powerCount)
-        .mapToObj(i -> String.format("%-" + cellWidth + "s", game.getPlayer(i)))
-        .collect(Collectors.joining(" | "));
-      return String.format("Game %-2d: %s", gameIndex, playersLine);
-    }).collect(Collectors.joining("\n"));
+      sb.append(gameLabelPrefix);
+      sb.append(String.format("%-" + maxGameIndexLength + "d", gameIndex));
+      sb.append(gameLabelSuffix);
 
-    return header + "\n" + separator + "\n" + body;
+      for (int i = 0; i < powerCount; i++) {
+        if (i > 0) {
+          sb.append(" | ");
+        }
+        sb.append(String.format("%-" + cellWidth + "s", game.getPlayer(i)));
+      }
+      sb.append("\n");
+    }
+
+    return sb.toString();
   }
 }

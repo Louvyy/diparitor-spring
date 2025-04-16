@@ -44,15 +44,17 @@ final class GeneticGame {
   }
 
   public Map<Power, RegisteredPlayer> computePairingsByPower() {
-    return IntStream.range(0, players.size())
-      .boxed()
-      .collect(Collectors.toMap(powers::get, players::get));
+    return IntStream.range(0, players.size()).boxed().collect(Collectors.toMap(powers::get, players::get));
   }
 
   public List<Map.Entry<RegisteredPlayer, ArrayList<RegisteredPlayer>>> computeOpponents() {
     return players.stream()
       .map(registeredPlayer -> Map.entry(registeredPlayer, getPlayerOpponents(registeredPlayer)))
       .collect(Collectors.toCollection(ArrayList::new));
+  }
+
+  public int getPlayersMaxNameLength() {
+    return players.stream().mapToInt(player -> player.name().length()).max().orElseThrow();
   }
 
   private ArrayList<RegisteredPlayer> getPlayerOpponents(RegisteredPlayer player) {
