@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.mebae</groupId>
 	<artifactId>diparitor-spring</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>diparitor</name>
 	<description>Pairing and management program designed for online Diplomacy tournaments or its variants</description>
 	<url/>
