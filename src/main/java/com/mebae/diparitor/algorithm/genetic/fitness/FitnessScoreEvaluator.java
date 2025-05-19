@@ -57,7 +57,7 @@ public final class FitnessScoreEvaluator {
     return evaluateDiversity(playerOpponentList);
   }
 
-  static <T> Gatherer<T, Map<T, Long>, Long> duplicateCounts() {
+  static <T> Gatherer<T, Map<T, Long>, Long> gatherDuplicateElementCounts() {
     return Gatherer.of(HashMap::new, Gatherer.Integrator.ofGreedy((state, element, _) -> {
       state.merge(element, 1L, Long::sum);
       return true;
@@ -71,14 +71,21 @@ public final class FitnessScoreEvaluator {
     }));
   }
 
-  // TODO rendre + lisible
+  private static long computeDuplicatePenalties(long count) {
+    return (count - 1) * (count - 1);
+  }
+
+  private static <T> long sumDuplicatePenalties(List<T> list) {
+    return list.stream()
+        .gather(gatherDuplicateElementCounts())
+        .mapToLong(FitnessScoreEvaluator::computeDuplicatePenalties)
+        .sum();
+  }
+
   private static <T> long evaluateDiversity(Map<RegisteredPlayer, List<T>> playerMap) {
     return playerMap.values()
         .stream()
-        .mapToLong(list -> list.stream()
-            .gather(duplicateCounts())
-            .mapToLong(count -> (count - 1) * (count - 1))
-            .sum())
+        .mapToLong(FitnessScoreEvaluator::sumDuplicatePenalties)
         .sum();
   }
 }

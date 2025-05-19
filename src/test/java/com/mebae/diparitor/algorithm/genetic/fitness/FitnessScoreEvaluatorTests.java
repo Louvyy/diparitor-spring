@@ -44,9 +44,9 @@ public class FitnessScoreEvaluatorTests {
   }
 
   @Test
-  void duplicateCounts() {
+  void gatherDuplicateElementCounts() {
     var set = Stream.of("A", "A", "B", "A", "C", "A", "C")
-        .gather(FitnessScoreEvaluator.duplicateCounts())
+        .gather(FitnessScoreEvaluator.gatherDuplicateElementCounts())
         .collect(Collectors.toSet());
     assertEquals(2, set.size());
     assertTrue(set.contains(2L));
