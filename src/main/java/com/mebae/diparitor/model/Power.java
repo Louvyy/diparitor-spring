@@ -3,6 +3,7 @@ package com.mebae.diparitor.model;
 import java.util.Objects;
 import java.util.Optional;
 
+// TODO JAVADOC
 /**
  * Represents a power in a Diplomacy game.
  * A power can have a difficulty coefficient or none at all.
@@ -10,7 +11,7 @@ import java.util.Optional;
 public final class Power {
   private final String name;
   /**
-   * Represents the value of the difficulty coefficient if any, null otherwise
+   * Represents the value of the difficulty coefficient if any, null otherwise.
    */
   private final Double difficulty;
 
@@ -22,23 +23,21 @@ public final class Power {
    * @throws NullPointerException     if {@code name} is {@code null}
    * @throws IllegalArgumentException if {@code difficulty} is negative
    */
-  public Power(String name, double difficulty) {
+  private Power(String name, Double difficulty) {
     this.name = Objects.requireNonNull(name);
-    if (difficulty < 0.0) {
-      throw new IllegalArgumentException("The difficulty coefficient must be a non-negative number");
-    }
     this.difficulty = difficulty;
   }
 
-  /**
-   * Constructs a power with no specified difficulty.
-   *
-   * @param name the name of the power
-   * @throws NullPointerException if {@code name} is {@code null}
-   */
-  public Power(String name) {
-    this.name = Objects.requireNonNull(name);
-    this.difficulty = null;
+  public static Power withDifficulty(String name, double difficulty) {
+    if (difficulty < 0.0) {
+      throw new IllegalArgumentException(
+          "The difficulty coefficient must be a non-negative number");
+    }
+    return new Power(name, difficulty);
+  }
+
+  public static Power withoutDifficulty(String name) {
+    return new Power(name, null);
   }
 
   /**
@@ -81,15 +80,20 @@ public final class Power {
 
   /**
    * Checks if this power is equal to another power.
-   * Two powers are considered equal if they have the same name and the same difficulty (if defined).
+   * Two powers are considered equal if they have the same name and the same difficulty (if
+   * defined).
    *
    * @param o the other object to compare
    * @return {@code true} if the two powers are equal, {@code false} otherwise
    */
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     Power power = (Power) o;
     return name.equals(power.name) && Objects.equals(difficulty, power.difficulty);
   }

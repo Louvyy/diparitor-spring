@@ -1,6 +1,7 @@
 package com.mebae.diparitor.model;
 
 import java.util.Objects;
+
 /**
  * Represents a registered player in a Diplomacy tournament.
  * A player has a name and the number of games they are registered for.
@@ -22,7 +23,8 @@ public record RegisteredPlayer(String name, int participationCount) {
   }
 
   /**
-   * Returns a string representation of the player, including their name and the number of games they are registered
+   * Returns a string representation of the player, including their name and the number of games
+   * they are registered
    * for.
    *
    * @return the name and game count of the player
